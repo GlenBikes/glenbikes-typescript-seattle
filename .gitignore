@@ -1,0 +1,6 @@
+.aws/**
+definitions/**
+dist/**
+log/**
+.localstore/**
+nodemodules/**

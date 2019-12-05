@@ -1,0 +1,18 @@
+{
+  "compilerOptions": {
+    "lib": ["es6"],
+    "module": "commonjs",
+    "target": "es5",
+    "moduleResolution": "node",
+    "declaration": true,
+    "rootDir": ".",
+    "outDir": "dist",
+    "types" : ["node", "jasmine"]
+  },
+  "include": [
+    "index.ts",
+    "definitions/**/*.ts",
+    "src/**/*.ts",
+    "test/**/*"  
+  ]
+}
