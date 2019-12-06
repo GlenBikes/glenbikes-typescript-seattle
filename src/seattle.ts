@@ -30,9 +30,22 @@ var url =
 
 // interfaces
 interface ISeattleCitation extends ICitation {
-  Type: string,
-  Status: string,
-  ViolationDate: string,
+  [index: string]: any;
+  Type: string;
+  Status: string;
+  ViolationDate: string;
+  ViolationLocation: string
+}
+
+class SeattleCitation implements ISeattleCitation {
+  [index: string]: any;
+  constructor() {}
+  
+  id: string;
+  license: string;
+  Type: string;
+  Status: string;
+  ViolationDate: string;
   ViolationLocation: string
 }
 
@@ -64,8 +77,8 @@ interface IGetCitationsByVehicleNumberResult {
 // Classes
 export class SeattleRegion implements IRegion {
 
-  GetCitationsByPlate(plate: string, state: string): Promise<Array<ICitation>> {
-    return new Promise<Array<ICitation>>( (resolve, reject) => {
+  GetCitationsByPlate(plate: string, state: string): Promise<Array<Citation>> {
+    return new Promise<Array<Citation>>( (resolve, reject) => {
       let citations: Array<Array<ICitation>> = [];
       this.GetVehicleIDs(plate, state).then(async (vehicles: ISeattleVehicle[]) => {
         // Make the calls to GetCitationsByVehicleNum soap method synchronously
@@ -131,7 +144,7 @@ export class SeattleRegion implements IRegion {
     });
   }
   
-  GetCitationsByVehicleNum(vehicleID: number): Promise<ICitation[]> {
+  GetCitationsByVehicleNum(vehicleID: number): Promise<Citation[]> {
     var args = {
       VehicleNumber: vehicleID
     };
@@ -147,9 +160,11 @@ export class SeattleRegion implements IRegion {
           if (err) {
             throw err;
           }
+          
           let jsonObj: any = JSON.parse(citations.GetCitationsByVehicleNumberResult);
-          let jsonResultSet: ICitation[] = [];
-          jsonResultSet.push(JSON.parse(jsonObj.Data));
+          let jsonResultSet: SeattleCitation[] = [];
+          let seattleCitations: SeattleCitation[] = JSON.parse(jsonObj.Data);
+          jsonResultSet.concat(seattleCitations);
 
           resolve(jsonResultSet);
         });
