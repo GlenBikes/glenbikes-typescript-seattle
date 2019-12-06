@@ -10,7 +10,8 @@ var chokidar = require('chokidar'),
 // imported interfaces
 import {IRegion} from 'glenbikes-typescript-test';
 import {ICitation} from 'glenbikes-typescript-test';
-import {StatesAndProvinces} from './licensehelper';
+import {StatesAndProvinces} from 'glenbikes-typescript-test';
+import {formatPlate} from 'glenbikes-typescript-test';
 
 var LogType = howsmydriving_utils.LogType;
 const getLogger = howsmydriving_utils.getLogger;

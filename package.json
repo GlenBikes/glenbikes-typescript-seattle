@@ -24,7 +24,7 @@
     "chokidar": "^3.3.0",
     "dynamo-batchwrite-queue": "^1.0.1",
     "express": "^4.14.0",
-    "glenbikes-typescript-test": "^0.1.42",
+    "glenbikes-typescript-test": "^0.1.43",
     "live-mutex": "^0.2.21",
     "log4js": "^4.0.2",
     "mocha": "^6.2.1",
