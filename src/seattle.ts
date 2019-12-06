@@ -1,24 +1,26 @@
 // TODO: Order things in this file
 
-// modules
+// Imports
+import {Client as SOAPClient} from 'soap';
+import {createClient as CreateSOAPClient} from 'soap';
+
+import {IRegion} from 'glenbikes-typescript-test';
+import {ICitation} from 'glenbikes-typescript-test';
+import {getLogger} from 'glenbikes-typescript-test';
+import {LogType} from 'glenbikes-typescript-test';
+import {StatesAndProvinces} from 'glenbikes-typescript-test';
+import {formatPlate} from 'glenbikes-typescript-test';
+import {CompareNumericStrings} from 'glenbikes-typescript-test';
+
 var chokidar = require('chokidar'),
     fs = require("fs"),
     howsmydriving_utils = require('glenbikes-typescript-test'),
-    path = require("path"),
-    soap = require("soap");
-
-// imported interfaces
-import {IRegion} from 'glenbikes-typescript-test';
-import {ICitation} from 'glenbikes-typescript-test';
-import {StatesAndProvinces} from 'glenbikes-typescript-test';
-import {formatPlate} from 'glenbikes-typescript-test';
-
-var LogType = howsmydriving_utils.LogType;
-const getLogger = howsmydriving_utils.getLogger;
+    path = require("path");
 
 
 var log = getLogger(LogType.app);
 
+// TODO: Consolidate these.
 const noCitationsFoundMessage = "No citations found for plate #",
   noValidPlate = "No valid license found. Please use XX:YYYYY where XX is two character state/province abbreviation and YYYYY is plate #",
   parkingAndCameraViolationsText = "Total parking and camera violations for #",
@@ -26,10 +28,12 @@ const noCitationsFoundMessage = "No citations found for plate #",
   violationsByStatusText = "Violations by status for #",
   citationQueryText = "License #__LICENSE__ has been queried __COUNT__ times.";
 
+// The Seattle court web service to query citations.
+// This could break at any time since they don't document its availability.
 var url =
   "https://web6.seattle.gov/Courts/ECFPortal/JSONServices/ECFControlsService.asmx?wsdl";
 
-// interfaces
+// interfaces - TODO: Move to declaration files.
 interface ISeattleCitation extends ICitation {
   [index: string]: any;
   Type: string;
@@ -107,8 +111,153 @@ export class SeattleRegion implements IRegion {
   }
 
   ProcessCitationsForRequest(citations: ICitation[], query_count: number): Promise<Array<string>> {
-    return Promise.resolve(["a"]);
+    var general_summary: Array<string>, detailed_list: Array<string>, temporal_summary: Array<string>;
+    var categorizedCitations: { [request_id: string] : number } = {};
+    // TODO: Does it work to convert Date's to string for sorting? Might have to use epoch.
+    var chronologicalCitations: { [violation_date: string] : Array<ICitation> } = {};
+    var violationsByYear: { [violation_year: string] : number } = {};
+    var violationsByStatus: { [status: string] : number } = {};
+
+    if (!citations || Object.keys(citations).length == 0) {
+      // Should never happen. jurisdictions must return at least a dummy citation
+      throw new Error("Jurisdiction modules must return at least one citation, a dummy one if there are none.");
+    } else if (citations.length == 1 && citations[0].Citation < howsmydriving_utils.MINIMUM_CITATION_ID) {
+      switch ( citations[0].Citation ) {
+        case howsmydriving_utils.CitationIDNoPlateFound:
+          return Promise.resolve([
+            noValidPlate
+          ]);
+          break;
+
+        case howsmydriving_utils.CitationIDNoCitationsFound:
+          return new Promise( (resolve, reject) => {
+              resolve( [
+                `${noCitationsFoundMessage}${formatPlate(citations[0].license)}` +
+                "\n\n" +
+                citationQueryText.replace('__LICENSE__', formatPlate(citations[0].license)).replace('__COUNT__', query_count.toString())
+              ]);
+          });
+          break
+
+        default:
+          throw new Error(`ERROR: Unexpected citation ID: ${citations[0].Citation}.`);
+          break;
+      }
+    } else {
+      var license: string;
+
+      for (var i = 0; i < citations.length; i++) {
+        var citation = citations[i];
+        var year: number = 1970;
+        var violationDate = new Date(Date.now());
+
+        // All citations are from the same license
+        if (license == null) {
+          license = citation.license;
+        }
+
+        try {
+          violationDate = new Date(Date.parse(citation.ViolationDate));
+        } catch (e) {
+          // TODO: refactor error handling to a separate file
+          throw new Error(e);
+        }
+
+        // TODO: Is it possible to have more than 1 citation with exact same time?
+        // Maybe throw an exception if we ever encounter it...
+        if (!(violationDate.getTime().toString() in chronologicalCitations)) {
+          chronologicalCitations[violationDate.getTime().toString()] = new Array();
+        }
+
+        chronologicalCitations[violationDate.getTime().toString()].push(citation);
+
+        if (!(citation.Type in categorizedCitations)) {
+          categorizedCitations[citation.Type] = 0;
+        }
+        categorizedCitations[citation.Type]++;
+
+        if (!(citation.Status in violationsByStatus)) {
+          violationsByStatus[citation.Status] = 0;
+        }
+        violationsByStatus[citation.Status]++;
+
+        year = violationDate.getFullYear();
+
+        if (!(year.toString() in violationsByYear)) {
+          violationsByYear[year.toString()] = 0;
+        }
+
+        violationsByYear[year.toString()]++;
+      }
+
+      return new Promise( (resolve, reject) => {
+        var general_summary =
+          parkingAndCameraViolationsText +
+          formatPlate(license) +
+          ": " +
+          Object.keys(citations).length;
+
+        Object.keys(categorizedCitations).forEach( key => {
+          var line = key + ": " + categorizedCitations[key];
+
+          // Max twitter username is 15 characters, plus the @
+          general_summary += "\n";
+          general_summary += line;
+        });
+
+        general_summary += "\n\n";
+        general_summary += citationQueryText
+          .replace('__LICENSE__', formatPlate(license))
+          .replace('__COUNT__', query_count.toString());
+
+        var detailed_list = "";
+
+        var sortedChronoCitationKeys = Object.keys(chronologicalCitations).sort(
+          function(a: string, b: string) {
+            //return new Date(a).getTime() - new Date(b).getTime();
+            return CompareNumericStrings(a, b);  //(a === b) ? 0 : ( a < b ? -1 : 1);
+          }
+        );
+
+        var first = true;
+
+        for (var i = 0; i < sortedChronoCitationKeys.length; i++) {
+          var key: string = sortedChronoCitationKeys[i];
+
+          chronologicalCitations[key].forEach( citation => {
+            if (first != true) {
+              detailed_list += "\n";
+            }
+            first = false;
+            detailed_list += `${citation.ViolationDate}, ${citation.Type}, ${citation.ViolationLocation}, ${citation.Status}`;
+          });
+        }
+
+        var temporal_summary: string = violationsByYearText + formatPlate(license) + ":";
+        Object.keys(violationsByYear).forEach( key => {
+          temporal_summary += "\n";
+          temporal_summary += `${key}: ${violationsByYear[key].toString}`;
+        });
+
+        var type_summary = violationsByStatusText + formatPlate(license) + ":";
+        Object.keys(violationsByStatus).forEach( key => {
+          type_summary += "\n";
+          type_summary += `${key}: ${violationsByStatus[key]}`;
+        });
+
+        // Return them in the order they should be rendered.
+        var result = [
+          general_summary,
+          detailed_list,
+          type_summary,
+          temporal_summary
+        ];
+
+        resolve(result);
+      });
+    }
   }
+
 
   // TODO: If we export this class, this method must be moved out 
   // because there is no way to declare a function private in a class.
@@ -119,7 +268,7 @@ export class SeattleRegion implements IRegion {
     };
 
     return new Promise( (resolve, reject) => {
-      soap.createClient(url, function(err: Error, client: any) {
+      CreateSOAPClient(url, function(err: Error, client: SOAPClient) {
         if (err) {
           throw err;
         }
@@ -153,7 +302,7 @@ export class SeattleRegion implements IRegion {
     log.debug(`Getting citations for vehicle ID: ${vehicleID}.`);
 
     return new Promise<ICitation[]>((resolve, reject) => {
-      soap.createClient(url, (err: Error, client: any) => {
+      CreateSOAPClient(url, (err: Error, client: SOAPClient) => {
         if (err) {
           throw err;
         }
@@ -166,6 +315,23 @@ export class SeattleRegion implements IRegion {
           let jsonResultSet: SeattleCitation[] = [];
           let seattleCitations: SeattleCitation[] = JSON.parse(jsonObj.Data);
           jsonResultSet.concat(seattleCitations);
+
+          resolve(jsonResultSet);
+        });
+      });
+    });
+  }
+  
+  // TODO: Implement and test this.
+  GetCasesByVehicleNum(vehicleID: number): Promise<any> {
+    var args = {
+      VehicleNumber: vehicleID
+    };
+    return new Promise((resolve, reject) => {
+      CreateSOAPClient(url, (err: Error, client: SOAPClient) => {
+        client.GetCasesByVehicleNumber(args, function(err: Error, cases: any) {
+          var jsonObj = JSON.parse(cases.GetCasesByVehicleNumberResult);
+          var jsonResultSet = JSON.parse(jsonObj.Data);
 
           resolve(jsonResultSet);
         });
