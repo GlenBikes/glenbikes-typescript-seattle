@@ -1,6 +1,6 @@
 {
   "name": "glenbikes-typescript-seattle",
-  "version": "0.1.43",
+  "version": "0.1.45",
   "description": "Seattle region plug-in for howsmydriving packagemodule.",
   "declaration": true,
   "main": "./dist/index.js",
@@ -28,7 +28,7 @@
     "chokidar": "^3.3.0",
     "dynamo-batchwrite-queue": "^1.0.1",
     "express": "^4.14.0",
-    "glenbikes-typescript-test": "^0.1.52",
+    "glenbikes-typescript-test": "^0.1.55",
     "live-mutex": "^0.2.21",
     "log4js": "^4.0.2",
     "mocha": "^6.2.1",

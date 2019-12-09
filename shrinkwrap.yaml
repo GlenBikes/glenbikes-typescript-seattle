@@ -7,7 +7,7 @@ dependencies:
   chokidar: 3.3.0
   dynamo-batchwrite-queue: 1.0.1
   express: 4.17.1
-  glenbikes-typescript-test: 0.1.52
+  glenbikes-typescript-test: 0.1.55
   gulp: 3.9.1
   gulp-clean: 0.4.0
   gulp-cli: 2.2.0
@@ -2039,7 +2039,7 @@ packages:
     dev: true
     resolution:
       integrity: sha1-QdBF84UaXqiPA/JMocYXgRRGS5s=
-  /glenbikes-typescript-test/0.1.52:
+  /glenbikes-typescript-test/0.1.55:
     dependencies:
       '@types/body-parser': 1.17.1
       '@types/es6-shim': 0.31.39
@@ -2072,7 +2072,7 @@ packages:
     engines:
       node: 11.15.0
     resolution:
-      integrity: sha512-CwI0APOOUp85hGZhwk93eVmxmy3FwuYs7WJkdUYBnq93cDTKnA0PamPpsK/QsrGCwZbiJ7ztbjd6JuBCU+830Q==
+      integrity: sha512-It3ZDPGQi2vR4tTvx5+h4PsVOeTJonQySYyzU8loqn/wOTtGt1AUA/labD43AIFWaoalsIhsi21cXI0xATVJXg==
   /glob-parent/3.1.0:
     dependencies:
       is-glob: 3.1.0
@@ -5876,7 +5876,7 @@ specifiers:
   chokidar: ^3.3.0
   dynamo-batchwrite-queue: ^1.0.1
   express: ^4.14.0
-  glenbikes-typescript-test: ^0.1.52
+  glenbikes-typescript-test: ^0.1.55
   gulp: ^3.9.1
   gulp-clean: ^0.4.0
   gulp-cli: ^2.2.0

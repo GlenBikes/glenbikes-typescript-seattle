@@ -7,4 +7,4 @@ export function GetRegion(): IRegion {
   return new SeattleRegion();
 }
 
-console.log(`Seattle module loaded.`);
+log.info(`Seattle module loaded.`);

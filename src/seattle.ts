@@ -94,7 +94,7 @@ export class SeattleRegion implements IRegion {
     return new Promise<Array<Citation>>( (resolve, reject) => {
       let citations: Array<Citation> = [];
       this.GetVehicleIDs(plate, state).then(async (vehicles: ISeattleVehicle[]) => {
-        log.info(`Got vehicles for state:${state} plate:${plate}: ${DumpObject(vehicles)}`);
+        log.debug(`Got vehicles for state:${state} plate:${plate}: ${DumpObject(vehicles)}`);
         
         // Make the calls to GetCitationsByVehicleNum soap method synchronously
         // Or we could get throttled by the server.
@@ -107,17 +107,14 @@ export class SeattleRegion implements IRegion {
           ( await this.GetCitationsByVehicleNum(vehicle.VehicleNumber) ).forEach( (citation: Citation) => {
             // use the Citation field as the unique citation_id.
             citation.citation_id = citation.Citation
-            log.info(`Found citation for vehicle ${vehicle.VehicleNumber}: ${DumpObject(citation)}.`);
             citationsByCitationID[citation.citation_id] = citation;
           })
         }
                                                                                  
-        log.info(`Found ${Object.keys(citationsByCitationID).length} different citations for vehicle state:${state} plate:${plate}`);
+        log.info(`Found ${Object.keys(citationsByCitationID).length} different citations for vehicle ${state}:${plate}`);
 
         // Now put the unique citations back to an array
         let allCitations: Array<Citation> = Object.keys(citationsByCitationID).map(function(v) { return citationsByCitationID[v]; });
-
-        log.info(`Put citations into an array of length ${allCitations.length} for vehicle state:${state} plate:${plate}`);
 
         resolve(allCitations);
       });
