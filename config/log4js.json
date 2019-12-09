@@ -1,0 +1,29 @@
+{
+  "appenders": {  
+    "test": {
+      "type": "file",
+      "filename": "log/test.log",
+      "maxLogSize": 1048576,
+      "numBackups": 2
+    },
+    "stdout": { "type": "stdout" },
+    "stderr": { "type": "stderr" },
+    "debug": { "type": "dateFile", "filename": "log/debug.log", "maxLogSize": 1048576, "numBackups": 2 },
+    "debug-filter": { "type": "logLevelFilter", "appender": "debug", "level": "debug", "maxLevel": "debug" },
+    "result": { "type": "dateFile", "filename": "log/app.log", "maxLogSize": 1048576, "numBackups": 2 },
+    "result-filter": { "type": "logLevelFilter", "appender": "result", "level": "info", "maxLevel": "fatal" },
+    "error": { "type": "dateFile", "filename": "log/err.log", "maxLogSize": 1048576, "numBackups": 2 },
+    "error-filter": { "type": "logLevelFilter", "appender": "error", "level": "error", "maxLevel": "error" },
+    "default": { "type": "dateFile", "filename": "log/default.log", "maxLogSize": 1048576, "numBackups": 2 },
+    "warn": { "type": "dateFile", "filename": "log/warn.log", "maxLogSize": 1048576, "numBackups": 2 },
+    "warn-filter": { "type": "logLevelFilter", "appender": "warn", "level": "warn", "maxLevel": "warn" }
+  },
+  "categories": {
+    "default": { "appenders": ["stdout", "default"], "level": "info" },
+    "debug": { "appenders": ["debug", "debug-filter"], "level": "debug" },
+    "result": { "appenders": ["stdout", "result-filter", "error-filter"], "level": "debug" },
+    "error": { "appenders": ["error", "error-filter"], "level": "error" },
+    "warn": { "appenders": ["warn", "warn-filter"], "level": "warn" },
+    "test": { "appenders": [ "test", "stdout"    ], "level": "INFO" }
+  }
+}
