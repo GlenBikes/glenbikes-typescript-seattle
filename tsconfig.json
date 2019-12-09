@@ -10,9 +10,7 @@
     "types" : ["node", "jasmine"]
   },
   "include": [
-    "index.ts",
-    "definitions/**/*.ts",
-    "src/**/*.ts",
-    "test/**/*"  
+    "definitions/**/*.d.ts",
+    "src/**/*.ts"
   ]
 }

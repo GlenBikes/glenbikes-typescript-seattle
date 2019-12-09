@@ -1,20 +1,23 @@
 {
   "name": "glenbikes-typescript-seattle",
-  "version": "0.1.27",
+  "version": "0.1.43",
   "description": "Seattle region plug-in for howsmydriving packagemodule.",
   "declaration": true,
   "main": "./dist/index.js",
-  "types": "definitions/index.d.ts",
+  "types": "./definitions/index.d.ts",
   "typescript": {
     "definition": "definitions/index"
   },
   "files": [
+    "config/*",
     "definitions/**/*",
     "dist/**/*"
   ],
   "scripts": {
     "build": "gulp build",
-    "start": "gulp build && node dist/index.js"
+    "start": "gulp build && node dist/index.js",
+    "test": "gulp test",
+    "release": "standard-version"
   },
   "dependencies": {
     "@types/bluebird": "^3.5.29",
@@ -25,7 +28,7 @@
     "chokidar": "^3.3.0",
     "dynamo-batchwrite-queue": "^1.0.1",
     "express": "^4.14.0",
-    "glenbikes-typescript-test": "^0.1.45",
+    "glenbikes-typescript-test": "^0.1.52",
     "live-mutex": "^0.2.21",
     "log4js": "^4.0.2",
     "mocha": "^6.2.1",
